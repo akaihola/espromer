@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
+#include "device.h"
 
 #define THINGSPEAK_HOST "api.thingspeak.com"
 #define THINGSPEAK_PORT 80
 
-void thingSpeakSend(const char *wifiSsid, const char *wifiPassword, String apiKey,
-                    float temperature, uint16_t voltage) {
+void thingSpeakSend(float temperature, uint16_t voltage) {
   byte tryNum = 0;
 
   Serial.println("WiFi force sleep wake");
@@ -19,8 +19,8 @@ void thingSpeakSend(const char *wifiSsid, const char *wifiPassword, String apiKe
   Serial.println(WiFi.getMode());
 
   Serial.print("Connecting to ");
-  Serial.println(wifiSsid);
-  WiFi.begin(wifiSsid, wifiPassword);
+  Serial.println(WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
     if (++tryNum >= 50) {
@@ -34,7 +34,7 @@ void thingSpeakSend(const char *wifiSsid, const char *wifiPassword, String apiKe
   }
   Serial.println("");
   Serial.print("Connected to ");
-  Serial.println(wifiSsid);
+  Serial.println(WIFI_SSID);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   
@@ -44,7 +44,7 @@ void thingSpeakSend(const char *wifiSsid, const char *wifiPassword, String apiKe
   if (client.connect(THINGSPEAK_HOST, THINGSPEAK_PORT)) {
     char temperatureString[6];
     dtostrf(temperature, 2, 2, temperatureString);
-    String path = "/update?key=" + apiKey + 
+    String path = "/update?key=" + String(THINGSPEAK_API_KEY) +
                   "&field1=" + temperatureString + 
                   "&field2=" + voltage +
                   "&field3=" + millis();  
