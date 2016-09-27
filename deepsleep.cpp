@@ -12,6 +12,19 @@ extern "C" {
   // provides system_rtc_mem_{read,write}
 }
 
+char *getStateName(uint8_t state) {
+  switch (state) {
+    case STATE_COLDSTART:
+      return "cold start";
+    case STATE_WIFI:
+      return "WiFi enabled";
+    case STATE_NO_WIFI:
+      return "WiFi disabled";
+    default:
+      return "unknown";
+  }
+}
+
 byte buf[10] __attribute__((aligned(4)));
 
 uint8_t getState(void *des_addr, uint16 load_size) {
@@ -28,7 +41,7 @@ uint8_t getState(void *des_addr, uint16 load_size) {
     system_rtc_mem_read(RTC_OFFSET_STATE, buf, 1);
     Serial.print(buf[0]);
     Serial.print(". State is ");
-    Serial.println(buf[0]);
+    Serial.println(getStateName(buf[0]));
     if (load_size) {
       system_rtc_mem_read(RTC_OFFSET_DATA, des_addr, load_size);
     }
@@ -65,8 +78,8 @@ void reboot(uint32_t time_us, RFMode mode, const void *src_addr, uint16 save_siz
       Serial.println("Writing measurement data to RTC memory failed!");
     }
   }
-  Serial.print("Rebooting in mode ");
-  Serial.println(mode);
+  Serial.print("Rebooting with ");
+  Serial.println(getStateName(mode));
   ESP.deepSleep(time_us, mode);
   delay(100);
   Serial.println("Should have rebooted by now.");
