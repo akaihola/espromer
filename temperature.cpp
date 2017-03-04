@@ -5,6 +5,7 @@ char temperatureString[6];
 
 float getTemperature() {
   float temp;
+  int retries = 100;
   
   #ifdef ONE_WIRE_BUS
     OneWire oneWire(ONE_WIRE_BUS);
@@ -23,7 +24,7 @@ float getTemperature() {
     #ifdef ONE_WIRE_BUS
       DS18B20.requestTemperatures(); 
       temp = DS18B20.getTempCByIndex(0);
-    #elifdef DHTPIN
+    #elif defined DHTPIN
       temp = dht.readTemperature();
     #else
       Serial.println("No temperature sensor defined.");
@@ -34,10 +35,9 @@ float getTemperature() {
     Serial.print(" ");
     Serial.print(temperatureString);
     delay(100);
-  } while (temp == 85.0 || temp == (-127.0));  // these are DS18B20 "not ready" values?
+  } while (--retries > 0 && (temp == 85.0 || temp == (-127.0) || isnan(temp)));  // 85 and -127 are DS18B20 "not ready" values, NaN is same for DHT
   Serial.println();
   return temp;
-
 }
 
 

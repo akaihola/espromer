@@ -1,3 +1,11 @@
 #include <Arduino.h>
 
-void thingSpeakSend(float temperature, uint16_t voltage);
+struct Measurements {
+  float temperature;
+#ifdef DHTPIN
+  float humidity;
+#endif
+  uint16_t voltage;
+};
+
+void thingSpeakSend(struct Measurements measurements);
