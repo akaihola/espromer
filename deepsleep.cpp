@@ -81,7 +81,7 @@ void reboot(uint32_t time_us, RFMode mode, const void *src_addr, uint16 save_siz
   Serial.print("Rebooting with ");
   Serial.println(getStateName(mode));
   ESP.deepSleep(time_us, mode);
-  delay(100);
+  delay(50);
   Serial.println("Should have rebooted by now.");
 }
 

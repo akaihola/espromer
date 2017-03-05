@@ -9,10 +9,6 @@
 void thingSpeakSend(struct Measurements measurements) {
   byte tryNum = 0;
 
-  Serial.println("WiFi force sleep wake");
-  WiFi.forceSleepWake();
-  delay(100);
-
   Serial.println("Setting WiFi mode to WIFI_STA");
   WiFi.mode(WIFI_STA);
   
@@ -21,7 +17,15 @@ void thingSpeakSend(struct Measurements measurements) {
 
   Serial.print("Connecting to ");
   Serial.println(WIFI_SSID);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  #ifdef WIFI_IP
+    WiFi.config(IPAddress(WIFI_IP), IPAddress(WIFI_GATEWAY), IPAddress(WIFI_SUBNET));
+  #endif
+  #ifdef WIFI_BSSID
+    uint8_t bssid[6] = WIFI_BSSID;
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD, WIFI_CHANNEL, bssid);
+  #else
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  #endif
 
   while (WiFi.status() != WL_CONNECTED) {
     if (++tryNum >= 100) {
@@ -38,6 +42,8 @@ void thingSpeakSend(struct Measurements measurements) {
   Serial.println(WIFI_SSID);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  Serial.printf("BSSID: %s\n", WiFi.BSSIDstr().c_str());
+  Serial.printf("Channel: %d\n", WiFi.channel());
   
   WiFiClient client;
   const int httpPort = 80;
