@@ -6,9 +6,30 @@
 #define THINGSPEAK_HOST "api.thingspeak.com"
 #define THINGSPEAK_PORT 80
 
-void thingSpeakSend(struct Measurements measurements) {
+bool waitForConnection() {
   byte tryNum = 0;
 
+  while (WiFi.status() != WL_CONNECTED) {
+    if (++tryNum >= 100) {
+      Serial.println("\nNo WiFi.");
+      return false;
+    } else {
+      delay(100);
+      Serial.print(tryNum);
+      Serial.print(" ");
+    }
+  }
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(WIFI_SSID);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.printf("BSSID: %s\n", WiFi.BSSIDstr().c_str());
+  Serial.printf("Channel: %d\n", WiFi.channel());
+  return true;
+}
+
+void thingSpeakSend(struct Measurements measurements) {
   Serial.println("Setting WiFi mode to WIFI_STA");
   WiFi.mode(WIFI_STA);
   
@@ -23,28 +44,19 @@ void thingSpeakSend(struct Measurements measurements) {
   #ifdef WIFI_BSSID
     uint8_t bssid[6] = WIFI_BSSID;
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD, WIFI_CHANNEL, bssid);
+    if (!waitForConnection()) {
+      WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+      if (!waitForConnection()) {
+        return;
+      }
+    }
   #else
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    if (!waitForConnection()) {
+      return;
+    }
   #endif
 
-  while (WiFi.status() != WL_CONNECTED) {
-    if (++tryNum >= 100) {
-      Serial.println("\nNo WiFi.");
-      return;
-    } else {
-      delay(100);
-      Serial.print(tryNum);
-      Serial.print(" ");
-    }
-  }
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(WIFI_SSID);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  Serial.printf("BSSID: %s\n", WiFi.BSSIDstr().c_str());
-  Serial.printf("Channel: %d\n", WiFi.channel());
-  
   WiFiClient client;
   const int httpPort = 80;
   Serial.println("Connecting to ThingSpeak...");
